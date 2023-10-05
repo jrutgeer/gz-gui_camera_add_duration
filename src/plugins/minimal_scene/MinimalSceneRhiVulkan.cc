@@ -17,7 +17,7 @@
 
 #include "MinimalSceneRhiVulkan.hh"
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
+#if HAVE_QT_VULKAN
 
 #include "EngineToQtInterface.hh"
 #include "MinimalScene.hh"
@@ -36,42 +36,31 @@
 #include <string>
 
 /////////////////////////////////////////////////
-namespace gz
+namespace gz::gui::plugins
 {
-namespace gui
+class GzCameraTextureRhiVulkanPrivate
 {
-namespace plugins
+  public: VkImage textureId = nullptr;
+};
+
+class RenderThreadRhiVulkanPrivate
 {
-  class GzCameraTextureRhiVulkanPrivate
-  {
-    public: VkImage textureId = 0;
-  };
+  public: GzRenderer *renderer = nullptr;
+  public: void *texturePtr = nullptr;
+  public: QOffscreenSurface *surface = nullptr;
+};
 
-  class RenderThreadRhiVulkanPrivate
-  {
-    public: GzRenderer *renderer = nullptr;
-    public: void *texturePtr = nullptr;
-    public: QOffscreenSurface *surface = nullptr;
-  };
-
-  class TextureNodeRhiVulkanPrivate
-  {
-    public: VkImage textureId = 0;
-    public: VkImage newTextureId = 0;
-    public: std::weak_ptr<rendering::Camera> lastCamera;
-    public: QSize size {0, 0};
-    public: QSize newSize {0, 0};
-    public: QMutex mutex;
-    public: QSGTexture *texture = nullptr;
-    public: QQuickWindow *window = nullptr;
-  };
-}
-}
-}
-
-using namespace gz;
-using namespace gui;
-using namespace plugins;
+class TextureNodeRhiVulkanPrivate
+{
+  public: VkImage textureId = nullptr;
+  public: VkImage newTextureId = nullptr;
+  public: std::weak_ptr<rendering::Camera> lastCamera;
+  public: QSize size {0, 0};
+  public: QSize newSize {0, 0};
+  public: QMutex mutex;
+  public: QSGTexture *texture = nullptr;
+  public: QQuickWindow *window = nullptr;
+};
 
 /////////////////////////////////////////////////
 GzCameraTextureRhiVulkan::~GzCameraTextureRhiVulkan() = default;
@@ -185,15 +174,15 @@ TextureNodeRhiVulkan::~TextureNodeRhiVulkan()
 /////////////////////////////////////////////////
 TextureNodeRhiVulkan::TextureNodeRhiVulkan(QQuickWindow *_window,
                                            rendering::CameraPtr &
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
+#if HAVE_QT_VULKAN
                                              _camera
-#endif
+#endif  // HAVE_QT_VULKAN
                                            ) :
   dataPtr(std::make_unique<TextureNodeRhiVulkanPrivate>())
 {
   this->dataPtr->window = _window;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
+#if HAVE_QT_VULKAN
   // It says Metal but it also works for Vulkan in the exact same way
   _camera->RenderTextureMetalId(&this->dataPtr->textureId);
   this->dataPtr->lastCamera = _camera;
@@ -204,7 +193,7 @@ TextureNodeRhiVulkan::TextureNodeRhiVulkan(QQuickWindow *_window,
     0,                                               //
     QSize(static_cast<int>(_camera->ImageWidth()),
           static_cast<int>(_camera->ImageHeight())));
-#endif
+#endif  // HAVE_QT_VULKAN
 }
 
 /////////////////////////////////////////////////
@@ -249,14 +238,15 @@ void TextureNodeRhiVulkan::PrepareNode()
     delete this->dataPtr->texture;
     this->dataPtr->texture = nullptr;
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
+#if HAVE_QT_VULKAN
     this->dataPtr->texture =
         this->dataPtr->window->createTextureFromNativeObject(
             QQuickWindow::NativeObjectTexture,
             static_cast<void*>(&this->dataPtr->newTextureId),
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             this->dataPtr->newSize);
-#endif
+#endif  // HAVE_QT_VULKAN
   }
 }
 #endif
+}  // namespace gz::gui::plugins
