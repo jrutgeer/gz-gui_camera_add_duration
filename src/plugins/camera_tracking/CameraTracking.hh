@@ -18,6 +18,7 @@
 #ifndef GZ_GUI_PLUGINS_CAMERATRACKING_HH_
 #define GZ_GUI_PLUGINS_CAMERATRACKING_HH_
 
+#include <gz/utils/ImplPtr.hh>
 #include <memory>
 
 #include "gz/gui/Plugin.hh"
@@ -58,7 +59,7 @@ class CameraTracking : public Plugin
 
   /// \internal
   /// \brief Pointer to private data.
-  private: std::unique_ptr<CameraTrackingPrivate> dataPtr;
+  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }  // namespace gz::gui::plugins
 #endif  // GZ_GUI_PLUGINS_CAMERATRACKING_HH_

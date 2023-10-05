@@ -15,6 +15,7 @@
  *
 */
 
+#include <gz/utils/ImplPtr.hh>
 #include <mutex>
 #include <string>
 
@@ -44,7 +45,7 @@
 namespace gz::gui::plugins
 {
 /// \brief Private data class for CameraTracking
-class CameraTrackingPrivate
+class CameraTracking::Implementation
 {
   /// \brief Perform rendering calls in the rendering thread.
   public: void OnRender();
@@ -430,7 +431,7 @@ void CameraTrackingPrivate::OnRender()
 
 /////////////////////////////////////////////////
 CameraTracking::CameraTracking()
-  : Plugin(), dataPtr(new CameraTrackingPrivate)
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
   this->dataPtr->timer = new QTimer(this);
   this->connect(this->dataPtr->timer, &QTimer::timeout, [=]()
@@ -449,9 +450,7 @@ CameraTracking::CameraTracking()
 }
 
 /////////////////////////////////////////////////
-CameraTracking::~CameraTracking()
-{
-}
+CameraTracking::~CameraTracking() = default;
 
 /////////////////////////////////////////////////
 void CameraTracking::LoadConfig(const tinyxml2::XMLElement *)
@@ -463,7 +462,8 @@ void CameraTracking::LoadConfig(const tinyxml2::XMLElement *)
 }
 
 /////////////////////////////////////////////////
-void CameraTrackingPrivate::HandleKeyRelease(events::KeyReleaseOnScene *_e)
+void CameraTracking::Implementation::HandleKeyRelease(
+  events::KeyReleaseOnScene *_e)
 {
   if (_e->Key().Key() == Qt::Key_Escape)
   {
