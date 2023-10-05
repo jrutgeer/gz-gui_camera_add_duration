@@ -15,6 +15,7 @@
  *
  */
 
+#include <gz/utils/ImplPtr.hh>
 #include <unordered_set>
 
 #include <gz/common/Console.hh>
@@ -23,6 +24,8 @@
 #include "gz/gui/MainWindow.hh"
 #include "gz/gui/Plugin.hh"
 
+namespace
+{
 /// \brief Used to store information about anchors set by the user.
 struct Anchors
 {
@@ -36,7 +39,7 @@ struct Anchors
 };
 
 /// \brief Set of all possible lines.
-static const std::unordered_set<std::string> kAnchorLineSet{
+const std::unordered_set<std::string> kAnchorLineSet{
     "top",
     "bottom",
     "left",
@@ -46,14 +49,15 @@ static const std::unordered_set<std::string> kAnchorLineSet{
     "baseline"};
 
 /// \brief Properties which shouldn't be saved or loaded
-static const std::unordered_set<std::string> kIgnoredProps{
+const std::unordered_set<std::string> kIgnoredProps{
     "objectName",
     "pluginName",
     "anchored"};
+}  // namespace
 
 namespace gz::gui
 {
-class PluginPrivate
+class Plugin::Implementation
 {
   /// \brief Set this to true if the plugin should be deleted as soon as it has
   ///  a parent.
@@ -82,11 +86,8 @@ class PluginPrivate
   public: Anchors anchors;
 };
 
-using namespace gz;
-using namespace gui;
-
 /////////////////////////////////////////////////
-Plugin::Plugin() : dataPtr(new PluginPrivate)
+Plugin::Plugin() : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
@@ -515,6 +516,17 @@ void Plugin::PostParentChanges()
 
     this->CardItem()->setProperty(prop.first.c_str(), prop.second);
   }
+}
+
+/////////////////////////////////////////////////
+void Plugin::LoadConfig(const tinyxml2::XMLElement *_pluginElem)
+{
+  (void) _pluginElem;
+}
+
+/////////////////////////////////////////////////
+std::string Plugin::Title() const {
+  return this->title;
 }
 
 /////////////////////////////////////////////////

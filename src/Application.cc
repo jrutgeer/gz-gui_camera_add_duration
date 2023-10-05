@@ -47,7 +47,7 @@ enum class GZ_COMMON_HIDDEN AvailableAPIs
 
 namespace gz::gui
 {
-class ApplicationPrivate
+class Application::Implementation
 {
   /// \brief QML engine
   public: QQmlApplicationEngine *engine{nullptr};
@@ -91,7 +91,7 @@ class ApplicationPrivate
 Application::Application(int &_argc, char **_argv, const WindowType _type,
                          const char *_renderEngineGuiApiBackend) :
   QApplication(_argc, _argv),
-  dataPtr(new ApplicationPrivate)
+  dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
   gzdbg << "Initializing application." << std::endl;
 
@@ -880,7 +880,7 @@ void Application::RemovePlugin(std::shared_ptr<Plugin> _plugin)
 }
 
 //////////////////////////////////////////////////
-void ApplicationPrivate::MessageHandler(QtMsgType _type,
+void Application::Implementation::MessageHandler(QtMsgType _type,
     const QMessageLogContext &_context, const QString &_msg)
 {
   std::string msg = "[QT] " + _msg.toStdString();
@@ -908,4 +908,4 @@ void ApplicationPrivate::MessageHandler(QtMsgType _type,
       break;
   }
 }
-}  // namepace gz::gui
+}  // namespace gz::gui
