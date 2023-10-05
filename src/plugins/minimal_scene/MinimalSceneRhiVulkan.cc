@@ -110,7 +110,7 @@ std::string RenderThreadRhiVulkan::Initialize()
     return loadingError;
   }
 
-  return std::string();
+  return {};
 }
 
 /////////////////////////////////////////////////
@@ -158,7 +158,7 @@ void RenderThreadRhiVulkan::ShutDown()
   this->dataPtr->texturePtr = nullptr;
 
   // Schedule this to be deleted only after we're done cleaning up
-  if (this->dataPtr->surface)
+  if (this->dataPtr->surface != nullptr)
   {
     this->dataPtr->surface->deleteLater();
   }
@@ -173,16 +173,11 @@ TextureNodeRhiVulkan::~TextureNodeRhiVulkan()
 
 /////////////////////////////////////////////////
 TextureNodeRhiVulkan::TextureNodeRhiVulkan(QQuickWindow *_window,
-                                           rendering::CameraPtr &
-#if HAVE_QT_VULKAN
-                                             _camera
-#endif  // HAVE_QT_VULKAN
-                                           ) :
+                                           rendering::CameraPtr &_camera) :
   dataPtr(std::make_unique<TextureNodeRhiVulkanPrivate>())
 {
   this->dataPtr->window = _window;
 
-#if HAVE_QT_VULKAN
   // It says Metal but it also works for Vulkan in the exact same way
   _camera->RenderTextureMetalId(&this->dataPtr->textureId);
   this->dataPtr->lastCamera = _camera;
@@ -193,7 +188,6 @@ TextureNodeRhiVulkan::TextureNodeRhiVulkan(QQuickWindow *_window,
     0,                                               //
     QSize(static_cast<int>(_camera->ImageWidth()),
           static_cast<int>(_camera->ImageHeight())));
-#endif  // HAVE_QT_VULKAN
 }
 
 /////////////////////////////////////////////////
@@ -205,7 +199,7 @@ QSGTexture *TextureNodeRhiVulkan::Texture() const
 /////////////////////////////////////////////////
 bool TextureNodeRhiVulkan::HasNewTexture() const
 {
-  return (this->dataPtr->newTextureId != 0);
+  return (this->dataPtr->newTextureId != nullptr);
 }
 
 /////////////////////////////////////////////////
@@ -224,7 +218,7 @@ void TextureNodeRhiVulkan::PrepareNode()
   this->dataPtr->mutex.lock();
   this->dataPtr->newTextureId = this->dataPtr->textureId;
   this->dataPtr->newSize = this->dataPtr->size;
-  this->dataPtr->textureId = 0;
+  this->dataPtr->textureId = nullptr;
   this->dataPtr->mutex.unlock();
 
   // Required: PrepareForExternalSampling ensures the texture is ready to
@@ -233,20 +227,18 @@ void TextureNodeRhiVulkan::PrepareNode()
   auto lastCamera = this->dataPtr->lastCamera.lock();
   lastCamera->PrepareForExternalSampling();
 
-  if (this->dataPtr->newTextureId)
+  if (this->dataPtr->newTextureId != nullptr)
   {
     delete this->dataPtr->texture;
     this->dataPtr->texture = nullptr;
 
-#if HAVE_QT_VULKAN
     this->dataPtr->texture =
         this->dataPtr->window->createTextureFromNativeObject(
             QQuickWindow::NativeObjectTexture,
             static_cast<void*>(&this->dataPtr->newTextureId),
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             this->dataPtr->newSize);
-#endif  // HAVE_QT_VULKAN
   }
 }
-#endif
 }  // namespace gz::gui::plugins
+#endif  // HAVE_QT_VULKAN
