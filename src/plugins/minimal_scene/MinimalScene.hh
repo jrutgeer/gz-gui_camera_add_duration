@@ -264,7 +264,7 @@ class RenderThread : public QThread
   /// \brief Render when safe
   /// \param[in] _renderSync RenderSync to safely
   /// synchronize Qt and worker thread (this)
-  public slots: void RenderNext(RenderSync *_renderSync);
+  public slots: void RenderNext(gz::gui::plugins::RenderSync *_renderSync);
 
   /// \brief Shutdown the thread and the render engine
   public slots: void ShutDown();
@@ -461,7 +461,7 @@ class TextureNode : public QObject, public QSGSimpleTextureNode
   public slots: void PrepareNode();
 
   /// \param[in] _renderSync RenderSync to send to the worker thread
-  signals: void TextureInUse(RenderSync *_renderSync);
+        signals: void TextureInUse(gz::gui::plugins::RenderSync *_renderSync);
 
   /// \brief Signal emitted when a new texture is ready to trigger window
   /// update

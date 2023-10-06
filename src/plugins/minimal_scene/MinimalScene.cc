@@ -1123,7 +1123,7 @@ RenderWindowItem::~RenderWindowItem()
 void RenderWindowItem::StopRendering()
 {
   // Disconnect our QT connections.
-  for(auto conn : this->dataPtr->connections)
+  for (const auto &conn : qAsConst(this->dataPtr->connections))
     QObject::disconnect(conn);
 
   this->dataPtr->renderSync.Shutdown();
@@ -1683,7 +1683,7 @@ void MinimalScene::SetLoadingError(const QString &_loadingError)
       renderWindow->StopRendering();
   }
   this->loadingError = _loadingError;
-  this->LoadingErrorChanged();
+  emit this->LoadingErrorChanged();
 }
 }  // namespace gz::gui::plugins
 //

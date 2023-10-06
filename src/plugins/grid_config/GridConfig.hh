@@ -89,7 +89,7 @@ class GridConfig : public gz::gui::Plugin
 
   /// \brief Get the list of grid names
   /// \return List of grids.
-  public slots: QStringList NameList() const;
+  public: QStringList NameList() const;
 
   /// \brief Set the list of names
   /// \param[in] _nameList List of names

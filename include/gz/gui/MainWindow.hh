@@ -409,7 +409,7 @@ class GZ_GUI_VISIBLE MainWindow : public QObject
 
   /// \brief Get the action performed when GUI closes without prompt.
   /// \return The action.
-  public: Q_INVOKABLE ExitAction DefaultExitAction() const;
+  public: Q_INVOKABLE gz::gui::ExitAction DefaultExitAction() const;
 
   /// \brief Set the action performed when GUI closes without prompt.
   /// \param[in] _defaultExitAction The action.
