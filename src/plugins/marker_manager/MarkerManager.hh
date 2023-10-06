@@ -18,14 +18,13 @@
 #ifndef GZ_GUI_PLUGINS_MARKERMANAGER_HH_
 #define GZ_GUI_PLUGINS_MARKERMANAGER_HH_
 
+#include <gz/utils/ImplPtr.hh>
 #include <memory>
 
 #include "gz/gui/Plugin.hh"
 
 namespace gz::gui::plugins
 {
-class MarkerManagerPrivate;
-
 /// \brief This plugin will be in charge of handling the markers in the
 /// scene. It will allow to add, modify or remove markers.
 ///
@@ -56,7 +55,7 @@ class MarkerManager : public Plugin
 
   /// \internal
   /// \brief Pointer to private data.
-  private: std::unique_ptr<MarkerManagerPrivate> dataPtr;
+  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }  // namespace gz::gui::plugins
 #endif  // GZ_GUI_PLUGINS_MARKERMANAGER_HH_

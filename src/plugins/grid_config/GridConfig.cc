@@ -52,7 +52,7 @@ struct GridParam
   math::Color color{math::Color(0.7f, 0.7f, 0.7f, 1.0f)};
 };
 
-class GridConfigPrivate
+class GridConfig::Implementation
 {
   /// \brief List of grid names.
   public: QStringList nameList;
@@ -84,7 +84,7 @@ class GridConfigPrivate
 
 /////////////////////////////////////////////////
 GridConfig::GridConfig()
-  : gz::gui::Plugin(), dataPtr(std::make_unique<GridConfigPrivate>())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 

@@ -15,6 +15,7 @@
  *
 */
 
+#include <gz/utils/ImplPtr.hh>
 #include <iostream>
 #include <gz/common/Console.hh>
 #include <gz/msgs/Utility.hh>
@@ -25,7 +26,7 @@
 
 namespace gz::gui::plugins
 {
-class PublisherPrivate
+class Publisher::Implementation
 {
   /// \brief Message type
   public: QString msgType = "gz.msgs.StringMsg";
@@ -51,14 +52,12 @@ class PublisherPrivate
 
 /////////////////////////////////////////////////
 Publisher::Publisher()
-  : Plugin(), dataPtr(new PublisherPrivate)
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
 /////////////////////////////////////////////////
-Publisher::~Publisher()
-{
-}
+Publisher::~Publisher() = default;
 
 /////////////////////////////////////////////////
 void Publisher::LoadConfig(const tinyxml2::XMLElement *_pluginElem)

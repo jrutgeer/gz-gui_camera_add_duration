@@ -17,6 +17,7 @@
 
 #include <gz/msgs/int32.pb.h>
 
+#include <gz/utils/ImplPtr.hh>
 #include <string>
 
 #include <gz/gui/Application.hh>
@@ -27,7 +28,7 @@
 
 namespace gz::gui::plugins
 {
-class KeyPublisherPrivate
+class KeyPublisher::Implementation
 {
   /// \brief Node for communication
   public: gz::transport::Node node;
@@ -49,7 +50,8 @@ class KeyPublisherPrivate
 };
 
 /////////////////////////////////////////////////
-KeyPublisher::KeyPublisher(): Plugin(), dataPtr(new KeyPublisherPrivate)
+KeyPublisher::KeyPublisher():
+  dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
   // Advertise publisher node
   this->dataPtr->pub = this->dataPtr->node.Advertise<msgs::Int32>
@@ -57,9 +59,7 @@ KeyPublisher::KeyPublisher(): Plugin(), dataPtr(new KeyPublisherPrivate)
 }
 
 /////////////////////////////////////////////////
-KeyPublisher::~KeyPublisher()
-{
-}
+KeyPublisher::~KeyPublisher() = default;
 
 /////////////////////////////////////////////////
 void KeyPublisher::LoadConfig(const tinyxml2::XMLElement *)
@@ -82,7 +82,6 @@ bool KeyPublisher::eventFilter(QObject *_obj, QEvent *_event)
   return QObject::eventFilter(_obj, _event);
 }
 }  // namespace gz::gui::plugins
-
 // Register this plugin
 GZ_ADD_PLUGIN(gz::gui::plugins::KeyPublisher,
               gz::gui::Plugin)

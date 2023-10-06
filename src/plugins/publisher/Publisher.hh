@@ -21,6 +21,7 @@
 #include <memory>
 
 #include "gz/gui/Plugin.hh"
+#include <gz/utils/ImplPtr.hh>
 
 #ifndef _WIN32
 #  define Publisher_EXPORTS_API
@@ -34,7 +35,6 @@
 
 namespace gz::gui::plugins
 {
-class PublisherPrivate;
 /// \brief Widget which publishes a custom Gazebo Transport message.
 ///
 /// ## Configuration
@@ -140,7 +140,7 @@ class Publisher_EXPORTS_API Publisher : public Plugin
 
   /// \internal
   /// \brief Pointer to private data.
-  private: std::unique_ptr<PublisherPrivate> dataPtr;
+  private: GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }  // namespace gz::gui::plugins
 #endif  // GZ_GUI_PLUGINS_PUBLISHER_HH_

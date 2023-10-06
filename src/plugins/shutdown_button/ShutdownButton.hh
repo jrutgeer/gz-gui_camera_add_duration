@@ -41,7 +41,7 @@ class ShutdownButton_EXPORTS_API ShutdownButton: public gz::gui::Plugin
   public: ShutdownButton();
 
   /// \brief Destructor
-  public: virtual ~ShutdownButton();
+  public: ~ShutdownButton() override;
 
   // Documentation inherited
   public: void LoadConfig(const tinyxml2::XMLElement *_pluginElem) override;

@@ -25,10 +25,10 @@
 
 #include "gz/gui/Plugin.hh"
 
+#include <gz/utils/ImplPtr.hh>
+
 namespace gz::gui::plugins
 {
-class PointCloudPrivate;
-
 /// \brief Visualize `gz::msgs::PointCloudPacked` messages in a 3D
 /// scene.
 ///
@@ -232,7 +232,7 @@ class PointCloud : public gz::gui::Plugin
 
   /// \internal
   /// \brief Pointer to private data
-  private: std::unique_ptr<PointCloudPrivate> dataPtr;
+  GZ_UTILS_UNIQUE_IMPL_PTR(dataPtr)
 };
 }  // namespace gz::gui::plugins
 #endif  // GZ_GUI_PLUGINS_POINTCLOUD_HH_

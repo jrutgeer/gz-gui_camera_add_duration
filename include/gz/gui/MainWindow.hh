@@ -667,9 +667,4 @@ struct GZ_GUI_VISIBLE WindowConfig
   std::string plugins{""};
 };
 }  // namespace gz::gui
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 #endif  // GZ_GUI_MAINWINDOW_HH_

@@ -17,6 +17,7 @@
 
 #include <gz/msgs/marker.pb.h>
 
+#include <gz/utils/ImplPtr.hh>
 #include <iostream>
 #include <unordered_set>
 #include <string>
@@ -35,7 +36,7 @@
 
 namespace gz::gui::plugins
 {
-class TapeMeasurePrivate
+class TapeMeasure::Implementation
 {
   /// \brief Gazebo communication node.
   public: transport::Node node;
@@ -90,8 +91,7 @@ class TapeMeasurePrivate
 
 /////////////////////////////////////////////////
 TapeMeasure::TapeMeasure()
-  : gz::gui::Plugin(),
-  dataPtr(std::make_unique<TapeMeasurePrivate>())
+  : dataPtr(gz::utils::MakeUniqueImpl<Implementation>())
 {
 }
 
