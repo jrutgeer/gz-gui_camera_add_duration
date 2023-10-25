@@ -1,7 +1,5 @@
 gz_get_sources(tests)
 
-find_package(Qt5Test REQUIRED)
-
 gz_build_tests(
   TYPE INTEGRATION
   SOURCES ${tests}
@@ -9,5 +7,5 @@ gz_build_tests(
     ${PROJECT_NAME}_test_helpers
     gz-plugin${GZ_PLUGIN_VER}::loader
     gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
-    Qt5::Test
+    Qt::Test
 )

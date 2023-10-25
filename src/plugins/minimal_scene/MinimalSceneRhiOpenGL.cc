@@ -16,6 +16,7 @@
 */
 
 #include "MinimalSceneRhiOpenGL.hh"
+#include <qsgtexture_platform.h>
 
 #include "EngineToQtInterface.hh"
 #include "MinimalScene.hh"
@@ -215,28 +216,11 @@ TextureNodeRhiOpenGL::TextureNodeRhiOpenGL(QQuickWindow *_window)
     : dataPtr(std::make_unique<TextureNodeRhiOpenGLPrivate>())
 {
   this->dataPtr->window = _window;
-
-  // Our texture node must have a texture, so use the default 0 texture.
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-# ifndef _WIN32
-#   pragma GCC diagnostic push
-#   pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-# endif
-  this->dataPtr->texture = this->dataPtr->window->createTextureFromId(
-      this->dataPtr->textureId,
-      QSize(1, 1),
-      QQuickWindow::TextureIsOpaque);
-# ifndef _WIN32
-#   pragma GCC diagnostic pop
-# endif
-#else
   this->dataPtr->texture =
-      this->dataPtr->window->createTextureFromNativeObject(
-          QQuickWindow::NativeObjectTexture,
-          static_cast<void*>(&this->dataPtr->textureId),
-          0,
-          QSize(1, 1));
-#endif
+    QNativeInterface::QSGOpenGLTexture::fromNative(
+      this->dataPtr->textureId,
+      this->dataPtr->window,
+      QSize(1, 1));
 }
 
 /////////////////////////////////////////////////
@@ -276,25 +260,10 @@ void TextureNodeRhiOpenGL::PrepareNode()
     delete this->dataPtr->texture;
     this->dataPtr->texture = nullptr;
 
-#if QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-# ifndef _WIN32
-#   pragma GCC diagnostic push
-#   pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-# endif
-    this->dataPtr->texture = this->dataPtr->window->createTextureFromId(
-        this->dataPtr->newTextureId,
-        this->dataPtr->newSize,
-        QQuickWindow::TextureIsOpaque);
-# ifndef _WIN32
-#   pragma GCC diagnostic pop
-# endif
-#else
     this->dataPtr->texture =
-        this->dataPtr->window->createTextureFromNativeObject(
-            QQuickWindow::NativeObjectTexture,
-            static_cast<void*>(&this->dataPtr->newTextureId),
-            0,
-            this->dataPtr->newSize);
-#endif
+      QNativeInterface::QSGOpenGLTexture::fromNative(
+        this->dataPtr->newTextureId,
+        this->dataPtr->window,
+        this->dataPtr->newSize);
   }
 }

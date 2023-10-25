@@ -162,7 +162,7 @@ Application::Application(int &_argc, char **_argv, const WindowType _type,
     );
 
 #  if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
-    QQuickWindow::setSceneGraphBackend(QSGRendererInterface::VulkanRhi);
+    QQuickWindow::setGraphicsApi(QSGRendererInterface::VulkanRhi);
 #  endif
   }
   else
@@ -206,13 +206,13 @@ Application::Application(int &_argc, char **_argv, const WindowType _type,
       switch (api)
       {
       default:
-      case AvailableAPIs::OpenGL:
-        this->dataPtr->mainWin->setProperty("renderEngineBackendApiName",
-                                            "opengl");
-        break;
       case AvailableAPIs::Vulkan:
         this->dataPtr->mainWin->setProperty("renderEngineBackendApiName",
                                             "vulkan");
+        break;
+      case AvailableAPIs::OpenGL:
+        this->dataPtr->mainWin->setProperty("renderEngineBackendApiName",
+                                            "opengl");
         break;
       case AvailableAPIs::Metal:
         this->dataPtr->mainWin->setProperty("renderEngineBackendApiName",

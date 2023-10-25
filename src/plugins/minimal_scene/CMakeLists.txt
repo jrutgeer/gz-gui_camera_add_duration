@@ -6,8 +6,6 @@ set(SOURCES
   EngineToQtInterface.cc
 )
 
-set(PROJECT_LINK_LIBS "")
-
 # Objective-C sources for macOS
 if (APPLE)
   set(SOURCES
@@ -30,7 +28,6 @@ gz_gui_add_plugin(MinimalScene
   PUBLIC_LINK_LIBS
    gz-rendering${GZ_RENDERING_VER}::gz-rendering${GZ_RENDERING_VER}
    gz-transport${GZ_TRANSPORT_VER}::gz-transport${GZ_TRANSPORT_VER}
-   ${PROJECT_LINK_LIBS}
 )
 
 # Enable ARC on selected source files

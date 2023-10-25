@@ -22,8 +22,8 @@ function(gz_gui_add_library library_name)
   set(multiValueArgs SOURCES QT_HEADERS PUBLIC_LINK_LIBS PRIVATE_LINK_LIBS)
   cmake_parse_arguments(gz_gui_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-  QT5_WRAP_CPP(${library_name}_headers_MOC ${gz_gui_add_library_QT_HEADERS})
-  QT5_ADD_RESOURCES(${library_name}_RCC ${library_name}.qrc)
+  QT_WRAP_CPP(${library_name}_headers_MOC ${gz_gui_add_library_QT_HEADERS})
+  QT_ADD_RESOURCES(${library_name}_RCC ${library_name}.qrc)
 
   add_library(${library_name} SHARED
     ${gz_gui_add_library_SOURCES}

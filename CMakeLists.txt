@@ -40,7 +40,7 @@ gz_find_package(TINYXML2 REQUIRED PRIVATE PRETTY tinyxml2)
 
 #--------------------------------------
 # Find gz-utils
-gz_find_package(gz-utils2 REQUIRED)
+gz_find_package(gz-utils2 REQUIRED COMPONENTS cli)
 set(GZ_UTILS_VER ${gz-utils2_VERSION_MAJOR})
 
 #--------------------------------------
@@ -81,15 +81,30 @@ set(GZ_TOOLS_VER 2)
 
 #--------------------------------------
 # Find QT
-gz_find_package (Qt5
+gz_find_package (Qt6
   COMPONENTS
     Core
     Quick
     QuickControls2
     Widgets
   REQUIRED
-  PKGCONFIG "Qt5Core Qt5Quick Qt5QuickControls2 Qt5Widgets"
+  PKGCONFIG "Qt6Core Qt6Quick Qt6QuickControls2 Qt6Widgets"
 )
+
+if (BUILD_TESTING)
+  gz_find_package (Qt6
+    COMPONENTS
+      Test
+    REQUIRED
+    PKGCONFIG "Qt6Test"
+  )
+endif()
+
+if(POLICY CMP0100)
+  cmake_policy(SET CMP0100 NEW)
+endif()
+
+qt_standard_project_setup()
 
 set(GZ_GUI_PLUGIN_INSTALL_DIR
   ${CMAKE_INSTALL_PREFIX}/${GZ_LIB_INSTALL_DIR}/gz-${GZ_DESIGNATION}-${PROJECT_VERSION_MAJOR}/plugins

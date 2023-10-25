@@ -17,12 +17,10 @@
 
 #include <gz/msgs/boolean.pb.h>
 #include <gz/msgs/stringmsg.pb.h>
+#include <qsgtexture_platform.h>
 
 #include "MinimalScene.hh"
-#include "MinimalSceneRhi.hh"
-#include "MinimalSceneRhiMetal.hh"
-#include "MinimalSceneRhiOpenGL.hh"
-#include "MinimalSceneRhiVulkan.hh"
+#include "MinimalSceneConfig.hh"
 
 #include <algorithm>
 #include <list>
@@ -52,8 +50,17 @@
 #include "gz/gui/Helpers.hh"
 #include "gz/gui/MainWindow.hh"
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
+#if MINIMAL_SCENE_HAVE_OPENGL
+#  include "MinimalSceneRhiOpenGL.hh"
+#endif
+
+#if MINIMAL_SCENE_HAVE_VULKAN
 #  include <QVulkanInstance>
+#  include "MinimalSceneRhiVulkan.hh"
+#endif
+
+#if MINIMAL_SCENE_HAVE_METAL
+#  include "MinimalSceneRhiMetal.hh"
 #endif
 
 Q_DECLARE_METATYPE(gz::gui::plugins::RenderSync*)
@@ -214,9 +221,11 @@ class gz::gui::plugins::RenderWindowItem::Implementation
 
   /// \brief Graphics API. The default is platform specific.
   public: gz::rendering::GraphicsAPI graphicsAPI =
-#ifdef __APPLE__
+#if MINIMAL_SCENE_HAVE_METAL
       rendering::GraphicsAPI::METAL;
-#else
+#elif MINIMAL_SCENE_HAVE_VULKAN
+      rendering::GraphicsAPI::VULKAN;
+#elif MINIMAL_SCENE_HAVE_OPENGL
       rendering::GraphicsAPI::OPENGL;
 #endif
 
@@ -237,10 +246,6 @@ class gz::gui::plugins::RenderWindowItem::Implementation
 class gz::gui::plugins::MinimalScene::Implementation
 {
 };
-
-using namespace gz;
-using namespace gui;
-using namespace plugins;
 
 QList<QThread *> RenderWindowItem::Implementation::threads;
 
@@ -586,7 +591,7 @@ rendering::CameraPtr GzRenderer::Camera()
   return this->dataPtr->camera;
 }
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
+#if MINIMAL_SCENE_HAVE_VULKAN
 /////////////////////////////////////////////////
 /// \brief fillQtInstanceExtensionsToOgre
 /// Extract Vulkan Instance extension information to be sent to OgreNext
@@ -679,7 +684,7 @@ std::string GzRenderer::Initialize(RenderThreadRhi &_rhi)
 
     this->dataPtr->rhiParams["winID"] = std::to_string(quickWindow->winId());
 
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
+#if MINIMAL_SCENE_HAVE_VULKAN 
     // externalInstance & externalDevice MUST be declared at this scope
     // because we save their stack addresses into this->dataPtr->rhiParams
     // and must be alive until rendering::engine() returns.
@@ -803,17 +808,15 @@ void GzRenderer::SetGraphicsAPI(const rendering::GraphicsAPI &_graphicsAPI)
     this->dataPtr->rhiParams["useCurrentGLContext"] = "1";
     this->dataPtr->rhi = std::make_unique<GzCameraTextureRhiOpenGL>();
   }
+#if MINIMAL_SCENE_HAVE_VULKAN
   else if (_graphicsAPI == rendering::GraphicsAPI::VULKAN)
   {
     gzdbg << "Creating gz-rendering interface for Vulkan" << std::endl;
     this->dataPtr->rhiParams["vulkan"] = "1";
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
     this->dataPtr->rhi = std::make_unique<GzCameraTextureRhiVulkan>();
-#else
-    this->dataPtr->rhi = std::make_unique<GzCameraTextureRhiOpenGL>();
-#endif
   }
-#ifdef __APPLE__
+#endif
+#if MINIAML_SCENE_HAVE_METAL
   else if (_graphicsAPI == rendering::GraphicsAPI::METAL)
   {
     gzdbg << "Creating gz-renderering interface for Metal" << std::endl;
@@ -881,9 +884,9 @@ RenderThread::RenderThread()
 {
   // Set default graphics API to OpenGL
   const std::string backendApiName = gz::gui::renderEngineBackendApiName();
-  if (backendApiName == "vulkan")
+  if (backendApiName == "opengl")
   {
-    this->SetGraphicsAPI(rendering::GraphicsAPI::VULKAN);
+    this->SetGraphicsAPI(rendering::GraphicsAPI::OPENGL);
   }
   else if (backendApiName == "metal")
   {
@@ -891,7 +894,7 @@ RenderThread::RenderThread()
   }
   else
   {
-    this->SetGraphicsAPI(rendering::GraphicsAPI::OPENGL);
+    this->SetGraphicsAPI(rendering::GraphicsAPI::VULKAN);
   }
 
   RenderWindowItem::Implementation::threads << this;
@@ -975,23 +978,19 @@ void RenderThread::SetGraphicsAPI(const rendering::GraphicsAPI &_graphicsAPI)
 
   // Create the render interface
   if (_graphicsAPI == rendering::GraphicsAPI::OPENGL
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
-      // Use fallback (GPU -> CPU -> GPU)
-      || _graphicsAPI == rendering::GraphicsAPI::VULKAN
-#endif
   )
   {
     gzdbg << "Creating render thread interface for OpenGL" << std::endl;
     this->rhi = std::make_unique<RenderThreadRhiOpenGL>(&this->gzRenderer);
   }
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
+#if MINIMAL_SCENE_HAVE_VULKAN
   else if (_graphicsAPI == rendering::GraphicsAPI::VULKAN)
   {
     gzdbg << "Creating render thread interface for Vulkan" << std::endl;
     this->rhi = std::make_unique<RenderThreadRhiVulkan>(&this->gzRenderer);
   }
 #endif
-#ifdef __APPLE__
+#if MINIMAL_SCENE_HAVE_METAL
   else if (_graphicsAPI == rendering::GraphicsAPI::METAL)
   {
     gzdbg << "Creating render thread interface for Metal" << std::endl;
@@ -1023,24 +1022,19 @@ TextureNode::TextureNode(QQuickWindow *_window, RenderSync &_renderSync,
   window(_window)
 {
   if (_graphicsAPI == rendering::GraphicsAPI::OPENGL
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
-      // Use fallback (GPU -> CPU -> GPU)
-      || _graphicsAPI == rendering::GraphicsAPI::VULKAN
-#endif
   )
   {
     gzdbg << "Creating texture node render interface for OpenGL" << std::endl;
     this->rhi = std::make_unique<TextureNodeRhiOpenGL>(_window);
   }
-#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
+#if MINIMAL_SCENE_HAVE_VULKAN
   else if (_graphicsAPI == rendering::GraphicsAPI::VULKAN)
   {
     gzdbg << "Creating texture node render interface for Vulkan" << std::endl;
     this->rhi = std::make_unique<TextureNodeRhiVulkan>(_window, _camera);
   }
-#else
 #endif
-#ifdef __APPLE__
+#if MINIMAL_SCENE_HAVE_METAL
   else if (_graphicsAPI == rendering::GraphicsAPI::METAL)
   {
     gzdbg << "Creating texture node render interface for Metal" << std::endl;
@@ -1138,12 +1132,7 @@ void RenderWindowItem::StopRendering()
 // This slot will run on the main thread
 void RenderWindowItem::Ready()
 {
-  if (this->dataPtr->graphicsAPI == rendering::GraphicsAPI::OPENGL
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
-      // Use fallback (GPU -> CPU -> GPU)
-      || this->dataPtr->graphicsAPI == rendering::GraphicsAPI::VULKAN
-#endif
-  )
+  if (this->dataPtr->graphicsAPI == rendering::GraphicsAPI::OPENGL)
   {
     this->dataPtr->renderThread->SetSurface(new QOffscreenSurface());
     this->dataPtr->renderThread->Surface()->setFormat(
@@ -1157,12 +1146,7 @@ void RenderWindowItem::Ready()
     return;
   }
 
-  if (this->dataPtr->graphicsAPI == rendering::GraphicsAPI::OPENGL
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
-      // Use fallback (GPU -> CPU -> GPU)
-      || this->dataPtr->graphicsAPI == rendering::GraphicsAPI::VULKAN
-#endif
-  )
+  if (this->dataPtr->graphicsAPI == rendering::GraphicsAPI::OPENGL)
   {
     // Move context to the render thread
     this->dataPtr->renderThread->Context()->moveToThread(
@@ -1205,30 +1189,8 @@ QSGNode *RenderWindowItem::updatePaintNode(QSGNode *_node,
     this->dataPtr->renderThread->SetGraphicsAPI(
         this->dataPtr->graphicsAPI);
 
-    if (this->dataPtr->graphicsAPI == rendering::GraphicsAPI::OPENGL
-#if QT_VERSION < QT_VERSION_CHECK(5, 15, 2) && QT_CONFIG(vulkan)
-        // Use fallback (GPU -> CPU -> GPU)
-        || this->dataPtr->graphicsAPI == rendering::GraphicsAPI::VULKAN
-#endif
-    )
+    if (this->dataPtr->graphicsAPI == rendering::GraphicsAPI::OPENGL)
     {
-      QOpenGLContext *current = this->window()->openglContext();
-      // Some GL implementations require that the currently bound context is
-      // made non-current before we set up sharing, so we doneCurrent here
-      // and makeCurrent down below while setting up our own context.
-      current->doneCurrent();
-
-      this->dataPtr->renderThread->SetContext(new QOpenGLContext());
-      this->dataPtr->renderThread->Context()->setFormat(current->format());
-      this->dataPtr->renderThread->Context()->setShareContext(current);
-      this->dataPtr->renderThread->Context()->create();
-
-      // The slot "Ready" runs on the main thread, move the context to match
-      this->dataPtr->renderThread->Context()->moveToThread(
-          QApplication::instance()->thread());
-
-      current->makeCurrent(this->window());
-
       // Initialize on main thread
       QMetaObject::invokeMethod(this, "Ready", Qt::QueuedConnection);
     }
